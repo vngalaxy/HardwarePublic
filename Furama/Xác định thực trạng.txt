@@ -1,0 +1,11 @@
+Xác định thực trạng:
+- Hiện Furama đang chia ra quản lý điện theo các tủ
++ Tủ trung tâm quản lý điện đầu vào (từ lưới điện)
++ Sau đó sẽ chia ra các tủ chức năng (điều hòa, ánh sáng,...)
++ Sau đó sẽ kéo dây từ các tủ chức năng tới tủ điện quản lý của mỗi hội trường.
+
+=> cần xác định quy mô giám sát: chỉ tập chung giám sát tủ trung tâm. Hay giám sát riêng lẻ mỗi tủ luôn để ước lượng được số lượng thiết bị. 
+
+- Xác định kích cỡ dây, địa chỉ dây (dây đó cung cấp điện cho thiết bị gì, nối tới đâu, công suất tối đa của mỗi dây) => yêu cầu bên furama cung cấp sơ đồ thiết kế đường dây điện, hoặc các tài liệu liên quan.
+
+- Tại các vị trí 

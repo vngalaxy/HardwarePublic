@@ -1,0 +1,35 @@
+const int rxPin = 2;  // Chân nhận dữ liệu
+const int baudRate = 9600;
+const int bitDelay = 1000000 / baudRate;
+
+void setup() {
+  pinMode(rxPin, INPUT);
+  Serial.begin(9600);  // Dùng để xuất dữ liệu ra màn hình Serial Monitor
+}
+
+int uartReceive() {
+  while (digitalRead(rxPin) == HIGH);  // Chờ bit bắt đầu (low)
+
+  delayMicroseconds(bitDelay / 2);  // Chờ một nửa thời gian để vào giữa bit bắt đầu
+
+  int data = 0;
+
+  for (int i = 0; i < 8; i++) {
+    delayMicroseconds(bitDelay);
+    if (digitalRead(rxPin) == HIGH) {
+      data |= (1 << i);  // Ghi nhận bit dữ liệu
+    }
+  }
+
+  delayMicroseconds(bitDelay);  // Chờ bit dừng
+
+  return data;
+}
+
+void loop() {
+  if (digitalRead(rxPin) == LOW) {  // Nếu có tín hiệu dữ liệu đến
+    int receivedData = uartReceive();
+    Serial.print("Received: ");
+    Serial.println((char)receivedData);
+  }
+}

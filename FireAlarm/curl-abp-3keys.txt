@@ -1,0 +1,13 @@
+curl --location 'https://nsc.vngalaxy.vn/api/devices/78af001cf364d5f7/activate' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlfa2V5X2lkIjoiNTAyNzlkMWUtMGRhMy00Y2E0LWJiOTQtN2RjZTRjYjhhNzA4IiwiYXVkIjoiYXMiLCJpc3MiOiJhcyIsIm5iZiI6MTcyMzg3NDE2NCwic3ViIjoiYXBpX2tleSJ9.QJURkMiD3B-V9iCJz5dshXDATN8HaRp3FihVdq-dxLw' \
+--header 'Content-Type: application/json' \
+--data '{
+  "deviceActivation": {
+    "appSKey": "43BF0249A805805CCB1DE411BDDFB0E0",
+    "devAddr": "00f77a27",
+    "devEUI": "78af001cf364d5f7",
+    "fNwkSIntKey": "ABD4FA3046A61CD5D14EEF25C832248C",
+    "nwkSEncKey": "ABD4FA3046A61CD5D14EEF25C832248C",
+    "sNwkSIntKey": "ABD4FA3046A61CD5D14EEF25C832248C"
+  }
+}

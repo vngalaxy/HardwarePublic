@@ -1,0 +1,7 @@
+curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' --header 'Grpc-Metadata-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlfa2V5X2lkIjoiNTAyNzlkMWUtMGRhMy00Y2E0LWJiOTQtN2RjZTRjYjhhNzA4IiwiYXVkIjoiYXMiLCJpc3MiOiJhcyIsIm5iZiI6MTcyMzg3NDE2NCwic3ViIjoiYXBpX2tleSJ9.QJURkMiD3B-V9iCJz5dshXDATN8HaRp3FihVdq-dxLw' -d '{ \ 
+   "deviceKeys": { \ 
+     "appKey": "2D35C7963275D743B4E73BEA91681A3B", \ 
+     "devEUI": "009569060001b1d1", \ 
+ "nwkKey":"00000000000000000000000000000000" \ 
+   } \ 
+ }' 'https://nsc.vngalaxy.vn/api/devices/009569060001b1d1/keys'

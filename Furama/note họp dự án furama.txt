@@ -1,0 +1,18 @@
+Khảo sát dây nào thuộc phòng nào (tập chung quản lý tại một vị trí tủ trung tâm).
+Đo kích thước dây.
+Cảnh báo dữ liệu bất thường (buổi tối nhưng điện năng tiêu thụ tăng) hỏi thêm vấn đề này với furama.
+Thống kê dữ liệu (điện áp dòng điện công suất) theo ngày tháng năm.
+
+
+
+Hợp đồng: 
+Phần chi phí phần mềm (thấp) => thu phí bảo trì theo tháng quý để bù.
+Xem lại các điều khoản yêu cầu của hợp đồng.
+
+
+
+Ưu điểm:
+Cam kết tiết kiệm được bao nhiêu năng lượng (cần xem xét lại).
+Tiết kiệm thời gian, công sức của nhân công trong việc thống kê ...
+
+

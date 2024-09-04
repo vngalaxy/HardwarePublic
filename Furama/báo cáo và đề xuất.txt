@@ -1,0 +1,22 @@
+1. Mục đích báo cáo
+- Nhằm cung cấp cái nhìn tổng quan về hiện trạng của việc giám sát và theo dõi năng lượng. Đồng thời đề xuất các giải pháp mới nhằm cải thiện và tối ưu hóa các công việc hiện tại.
+
+2. Thông tin hiện trạng.
+	2.1 Tổng quan.
+	- Hiện tại hệ thống điện tại furama đã được chia theo level, theo khu vực, chức năng cụ thể.
+	- Công tơ tổng đã có hệ thống giám sát của EVN để có thể theo dõi tổng điện năng tiêu thụ theo ngày tháng năm. 	và được cập nhật 30p/lần.
+	- 12 tủ điện chính cũng đã có đồng hồ cơ để phục vụ việc ghi chép theo dõi hàng ngày. Và các tủ điện tại tầng 	1 và tầng 2 có nhiệm vụ quản lý từng khu vực nhỏ hơn.
+
+	2.2 Chi tiết hiện trạng.
+	- Hệ thống EVN cung cấp chỉ mới đáp ứng được việc theo dõi tổng thể, ngoài ra để lấy được dữ liệu thống kê 	cũng cần thực hiện ghi chép tay.
+	- Việc ghi chép thông số từ 12 tủ điện thực hiện bằng cách ghi chép tay mỗi buổi sáng/tối. Đồng hồ tại mỗi tủ 	cũng chỉ giám sát tổng, không giám sát từng pha.
+	- Hệ thống 12 tủ điện tập trung dưới tầng hầm với lớp bê tông cốt thép dày ~50cm.
+	- Tủ điện tại tầng 1,2 và các phòng hiện chưa có đồng hồ để có thể quan sát mức năng lượng tiêu thụ.
+	- Mỗi tủ điện có công suất tiêu thụ khác nhau, số lượng dây cũng như kích cỡ cũng khác nhau.
+	- Ngoài điện lấy từ lưới điện quốc gia, còn có một máy phát điện chạy dầu diezen được sử dụng khi mất điện.
+
+3. Đề xuất giải pháp.
+	3.1: Kỹ thuật và thiết bị.
+	- Bước đầu triển khai lắp đặt thiết bị từ trên xuống, bắt đầu từ 12 tủ điện chính. Ngoài việc có thể theo dõi 	mức năng lượng tiêu thụ, hệ thống còn có thể hỗ trợ trong việc tìm kiếm được nguồn gây thất thoát điện (rò 	điện, hao tổn ....) một cách tổng quát nhất. 
+	- Sử dụng gateway outdoor để đem lại chất lượng tín hiệu và vùng phủ sóng rộng trong vòng bán kính 5-10km. 	Ngoài ra do chất lượng độ bền của gateway outdoor cao nên có thể lắp đặt ở cả những nơi khí hậu xấu, cũng như 	không tốn nhân công bảo trì.
+

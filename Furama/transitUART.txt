@@ -1,0 +1,34 @@
+const int txPin = 3; // Chân truyền dữ liệu
+const int baudRate = 9600;
+const int bitDelay = 1000000 / baudRate;
+
+void setup() {
+  pinMode(txPin, OUTPUT);
+  digitalWrite(txPin, HIGH);
+}
+
+void uartTransmit(char data) {
+  // Bắt đầu bit (low)
+  digitalWrite(txPin, LOW);
+  delayMicroseconds(bitDelay);
+
+  // Gửi 8 bit dữ liệu
+  for (int i = 0; i < 8; i++) {
+    if (data & 1) {
+      digitalWrite(txPin, HIGH);
+    } else {
+      digitalWrite(txPin, LOW);
+    }
+    data >>= 1;
+    delayMicroseconds(bitDelay);
+  }
+
+  // Bit dừng (high)
+  digitalWrite(txPin, HIGH);
+  delayMicroseconds(bitDelay);
+}
+
+void loop() {
+  uartTransmit('A'); // Gửi ký tự 'A'
+  delay(1000);       // Đợi 1 giây trước khi gửi tiếp
+}

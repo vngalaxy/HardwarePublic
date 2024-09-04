@@ -1,0 +1,84 @@
+TASK 1: Thiết kế và triển khai sản phẩm 
+Hệ thống VN Galaxy Network Server cho mạng LoRaWAN
+
+Xây dựng chính sách sử dụng cho hệ thống Network Server.
+•	Nhu cầu của khách hàng.
+•	Sử dụng với mục đích nghiên cứu, thực hiện các thí nghiệm dự án nhỏ lẻ.
+=> Nhu cầu về lưu trữ, số lượng các gateway end-device không cao.
+
+•	Sử dụng trong hộ gia đình, hệ thống giám sát các thiết bị, …
+=> Có nhu cầu về lưu trữ dữ liệu, số lượng end-device tương đối.
+
+•	Sử dụng tại các nhà máy, khu công nghiệp, hợp tác xã số, ….
+=> Nhu cầu về lưu trữ dữ liệu lớn, số lượng end-device rất lớn.
+
+- Sử dụng tại các đơn vị, cơ sở công lập, nhà nước
+
+•	Các chính sách dựa trên nhu cầu khách hàng.
+a, Gói Free – miễn phí cho sinh viên, nhà nghiên cứu, thử nghiệm,..
+- Hạn chế số lượng end-device của mỗi tài khoản (từ 1-2 device).
+- Hạn chế số lượng application (1 application).
+- Không có cloud để lưu trữ dữ liệu (hoặc số lượng rất ít).
+- Giới hạn truyền 500 packet / ngày.
+- Cloud lưu trữ 10Mbytes. 
+- Hạn chế các tài khoản phụ (không được thêm tài khoản phụ).
+b, Gói Standard - Gói cho hộ gia đình, nhỏ lẻ
++ Có cloud để lưu trữ dữ liệu (6 tháng - 1 năm).
+Giới hạn 1 ngày truyền 2000 packet.
+cloud lưu trữ tối đa 500Mbytes.
++ Tăng số lượng end-device (10 end-device).
++ Số lượng tài khoản phụ tăng (5 tài khoản phụ).
+c, Gói Professional - Gói cho doanh nghiệp, hợp tác xã.
++ Cloud lưu trữ dữ liệu lâu dài (1+ năm).
+Không giới hạn dữ liệu truyền mỗi ngày.
+Cloud lưu trữ 1 - 10Gbytes. 
++ Số lượng end-device không giới hạn.
++ Số lượng tài khoản phụ không giới hạn.
+
+d, Gói GateWay Contributor - Gói dành cho người đóng góp GateWay.
++ Giới hạn 1 ngày truyền 2000 packet.
++ cloud lưu trữ tối đa 500Mbytes.
++ Tăng số lượng end-device (5 end-device).
++ Số lượng tài khoản phụ tăng (2 tài khoản phụ).
+
+e, API – Dữ liệu
+
+- Công ty có thể sử dụng dữ liệu nhận được từ các end-device cho các mục đích như nghiên cứu, phát triển hệ thống Network và các ứng dụng mới.
+- Tuân thủ tất cả các điều luật và quy định hiện hành, bao gồm cả mọi điều luật về quyền riêng tư hoặc bảo vệ dữ liệu, cũng như các bộ luật tự quản lý hay bộ luật ngành có thể áp dụng khi sử dụng dữ liệu của khách hàng.
+- Có thể chia sẻ một số dữ liệu của người dùng cho bên thứ 3 (nhà quảng cáo) để có thể đưa ra những quảng cáo phù hợp với nhu cầu sử dụng của khách hàng. Tránh các quảng cáo rác.
+- Bên thứ 3 phải tuân thủ các quy định về bảo mật dữ liệu.
+- Phân loại dữ liệu của người dùng theo từng cấp cụ thể ( địa điểm cụ thể - phố - phường - quận- tp ....) sau khi phân loại, có thể tổng hợp dữ liệu thành một bản đồ cụ thể (bản đồ lượng mưa, nhiệt độ, độ ẩm, khí thải, mật độ xe tham gia giao thông ...)
+- Dựa vào bản đồ dữ liệu để có thể phân bổ số lượng gateway tại từng khu vực cho phù hợp với nhu cầu sử dụng.
+- Dựa vào lịch sử dữ liệu để phân tích dung lượng dữ liệu sử dụng tại các thời điểm trong ngày, nâng cấp, điều chỉnh server sao cho đáp ứng được nhu cầu trong mọi thời điểm.
+
+Xây dựng Chính sách về dữ liệu giữa người sử dụng Network Server và VN Galaxy.
+Có thể sử dụng cho công ty nhưng ko bán được.
+Từ dữ liệu user  Xây dựng dữ liệu thống kê để có thể sử dụng cho công ty Dữ liệu thống kê gì ?
+f, Thiết bị:
+•	Miễn phí gói cước khi người dùng lắp đặt các thiết bị, end-device.
+•	Bảo trì bảo dưỡng các thiết bị đã lắp đặt.
+•	Bán các thiết bị đã được tích hợp sẵn với hệ thống lora (đồ theo dõi thú cưng, xe cộ, …)
+-------------------------------------------------------------------------
+g, Các ưu đãi đóng góp Gateway
+•	Ưu đãi mở rộng mạng lưới Gateway.
++ Chủ sở hữu các Gateway khi tham gia vào Network sẽ được miễn phí gói GateWay Contributor.
++ Sẽ được trả phí dựa trên độ phủ sóng của Gateway và số lượng end-device (ngoài những end-device đã kết nói ở gói Contributor của chủ sở hữu).
+Độ phủ Gateway <5km: T
++ Nhận được thông báo, bản thử nghiệm mới của hệ thống (nếu có).
+--> Cụ thể hóa, bổ sung thêm Gói Contributor, trả tiền như thế nào ?
+•	Ưu đãi cho các gói cước.
++ Đăng kí dài hạn (1 năm +) sẽ được miễn phí lắp đặt 1 hoặc vài end-device.
++ Đăng kí dài hạn sẽ được ưu đãi 1-3 tháng, hoặc giảm giá …
++ Dịch vụ chăm sóc khách hàng 24/7 (nếu có).
+
+- Hoặc thuê lại
+- Khi chủ sở hữu gateway cho công ty thuê, coi như gateway đó thuộc toàn quyền sở hữu của công ty. Công ty có trách nghiệm trả tiền thuê, sửa chữa bảo dưỡng nếu hỏng hóc. Và chủ sở hữu không được làm bất cứ gì gây ảnh hưởng tới quá trình công ty sử dụng gateway.
+
+h. Chính sách cho các cơ sở nhà nước, có hỗ trợ vị trí lắp đặt Gateway, các đơn vị công lập.
+- API hoặc thuê Cloud.
+- Gói Free
+
+j. Quảng cáo
+Dữ liệu công cộng, chèn thêm quảng cáo.
+- Có thể hợp tác với các nhà quảng cáo, nhà đầu tư để quảng cáo các loại thiết bị, dịch vụ có liên quan tới nhu cầu của khách hàng ( trong mục d).
+- Nhà quảng cáo cam kết không sử dụng dữ liệu của khách hàng cho bên nào khác. Đáp ứng các quy định về bảo mật.
