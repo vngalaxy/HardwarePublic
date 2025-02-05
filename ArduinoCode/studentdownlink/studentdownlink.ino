@@ -1,0 +1,633 @@
+/*******************************************************************************
+ * Copyright (c) 2015 Thomas Telkamp and Matthijs Kooijman
+ *
+ * Permission is hereby granted, free of charge, to anyone
+ * obtaining a copy of this document and accompanying files,
+ * to do whatever they want with them without any restriction,
+ * including, but not limited to, copying, modification and redistribution.
+ * NO WARRANTY OF ANY KIND IS PROVIDED.
+ *
+ * This uses ABP (Activation-by-personalisation), where a DevAddr and
+ * Session keys are preconfigured (unlike OTAA, where a DevEUI and
+ * application key is configured, while the DevAddr and session keys are
+ * assigned/generated in the over-the-air-activation procedure).
+ *
+ * Do not forget to define the radio type correctly in config.h.
+ *
+ *******************************************************************************/
+
+ /*******************************************************************************/
+ // Region definition (will change de frequency bands
+ // Define only 1 country
+ //
+// #define CFG_EU 1
+#define CFG_VN 1
+//#define CFG_US 1
+
+/*******************************************************************************/
+
+#include <lmic.h>
+#include <hal/hal.h>
+#include <SPI.h>
+
+#include <DMD.h>
+#include <TimerOne.h>
+#include "SystemFont5x7.h"
+#include "Arial_black_16.h"
+
+#define ROW 1
+#define COLUMN 1
+#define FONT Arial_Black_16
+
+DMD led_module(ROW, COLUMN);
+int displayState = 0;
+unsigned long previousMillis = 0;
+const long interval = 5000; // Intervalle de 5 secondes
+
+char b[8];
+// LoRaWAN end-device address (DevAddr)
+
+static const u4_t DEVADDR = 0x00ba0a6a;
+
+// LoRaWAN NwkSKey, network session key
+// This is the default Semtech key, which is used by the early prototype TTN
+// network.
+static const PROGMEM u1_t NWKSKEY[16] = { 0xB2, 0x4A, 0x75, 0x72, 0x9F, 0x93, 0x9A, 0x21, 0x20, 0x4F, 0x25, 0x18, 0xB1, 0x97, 0x93, 0x8B};
+
+
+// LoRaWAN AppSKey, application session key
+// This is the default Semtech key, which is used by the early prototype TTN
+// network.
+static const u1_t PROGMEM APPSKEY[16] = {  0x91, 0x70, 0xAB, 0xAA, 0x50, 0x8E, 0xFC, 0x3E, 0x60, 0xC8, 0x4A, 0xCA, 0xFB, 0x61, 0x82, 0xC4 };
+
+
+
+// These callbacks are only used in over-the-air activation, so they are
+// left empty here (we cannot leave them out completely unless
+// DISABLE_JOIN is set in config.h, otherwise the linker will complain).
+void os_getArtEui (u1_t* buf) { }
+void os_getDevEui (u1_t* buf) { }
+void os_getDevKey (u1_t* buf) { }
+
+static uint8_t mydata[] = "Hello, world!";
+static osjob_t sendjob;
+char myled[30];
+char myString  = "Welcome to DNIIT";
+
+// Schedule TX every this many seconds (might become longer due to duty
+// cycle limitations).
+const unsigned TX_INTERVAL = 10;
+
+// Pin mapping
+const lmic_pinmap lmic_pins = {
+    .nss = 10,
+    .rxtx = LMIC_UNUSED_PIN,
+    .rst = 8,
+    .dio = {6, 6, 6},
+};
+
+//////////////////////////////////// led p10 ///////////////////////////////////////
+void scan_module()
+{
+  led_module.scanDisplayBySPI();
+}
+
+
+String bus_time ="";
+String danang_temperature ="";
+String bus_time_display="";
+String temperature_display="";
+
+void onEvent (ev_t ev) {
+    switch(ev) {
+        case EV_SCAN_TIMEOUT:
+            Serial.println(F("EV_SCAN_TIMEOUT"));
+            break;
+        case EV_BEACON_FOUND:
+            Serial.println(F("EV_BEACON_FOUND"));
+            break;
+        case EV_BEACON_MISSED:
+            Serial.println(F("EV_BEACON_MISSED"));
+            break;
+        case EV_BEACON_TRACKED:
+            Serial.println(F("EV_BEACON_TRACKED"));
+            break;
+        case EV_JOINING:
+            Serial.println(F("EV_JOINING"));
+            break;
+        case EV_JOINED:
+            Serial.println(F("EV_JOINED"));
+            break;
+        case EV_RFU1:
+            Serial.println(F("EV_RFU1"));
+            break;
+        case EV_JOIN_FAILED:
+            Serial.println(F("EV_JOIN_FAILED"));
+            break;
+        case EV_REJOIN_FAILED:
+            Serial.println(F("EV_REJOIN_FAILED"));
+            break;
+        case EV_TXCOMPLETE:
+            Serial.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
+            if (LMIC.txrxFlags & TXRX_ACK)
+              Serial.println(F("Received ack"));
+            if (LMIC.dataLen) {
+              Serial.print(F("Received "));
+              Serial.print(LMIC.dataLen);
+              Serial.println(F(" bytes of payload"));
+              String receivedHex = "";
+
+              // char t[LMIC.dataLen];
+              for (int i = 0; i < LMIC.dataLen; i++) {
+              if (LMIC.frame[LMIC.dataBeg + i] < 0x10) {
+              Serial.print(F("0"));
+              }
+              myled[i]=(char)LMIC.frame[LMIC.dataBeg+i];
+              receivedHex += String((char)LMIC.frame[LMIC.dataBeg + i], HEX);
+              
+              Serial.print(LMIC.frame[LMIC.dataBeg + i], HEX);
+              }
+              Serial.println("");
+              // myled = t;
+              // String TxPeriod = LMIC.frame;
+              //strcpy(myString, myled);
+              Serial.print(myled);
+              Serial.println(receivedHex);
+
+              String decodedText = hexToString(receivedHex);
+              Serial.print(F("Decoded Text: "));
+              Serial.println(decodedText);
+              String myDecodedData = decodedText;
+
+
+               // Décomposer le texte décodé en deux parties
+              int separatorIndex = decodedText.indexOf('|');
+              bus_time = decodedText.substring(0, separatorIndex);
+              bus_time.trim();
+              danang_temperature = decodedText.substring(separatorIndex + 1);
+              danang_temperature.trim();
+
+
+              // Stocker le texte décodé dans des variables
+              Serial.print(F("Bus time: "));
+              Serial.println(bus_time);
+              Serial.print(F("Temperature: "));
+              Serial.println(danang_temperature);
+
+              bus_time_display = "5 DAN " + bus_time;
+              temperature_display = danang_temperature + "C";
+
+
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    displayState = (displayState + 1) % 3; // Cycle entre 0, 1 et 2
+    led_module.clearScreen(true);
+  }
+  
+  switch(displayState) {
+    case 0:
+      led_module.selectFont(SystemFont5x7);
+      //led_module.drawString(0, 0, "DAN 5m", 10, GRAPHICS_NORMAL);
+      //led_module.drawString(0, 9, "HOI 3m", 10, GRAPHICS_NORMAL);
+      //break;
+
+      
+
+       // Affichage de la première ligne
+      led_module.drawMarquee(bus_time_display.c_str(), 8, (32 * ROW), 0);
+      {
+        long start = millis();
+        long timing = start;
+        boolean flag1 = false;
+        while (!flag1) {
+          if ((timing + 20) < millis()) {
+            flag1 = led_module.stepMarquee(-1, 0);
+            timing = millis();
+          }
+        }
+      }
+      
+      // Affichage de la deuxième ligne
+      // led_module.drawMarquee("5 HOI 3min   ", 8, (32 * ROW), 1);
+      // {
+      //   long start = millis();
+      //   long timing = start;
+      //   boolean flag2 = false;
+      //   while (!flag2) {
+      //     if ((timing + 20) < millis()) {
+      //       flag2 = led_module.stepMarquee(-1, 9);
+      //       timing = millis();
+      //     }
+      //   }
+      // }
+      break;
+
+
+
+    case 1:
+      led_module.selectFont(SystemFont5x7);
+      led_module.drawString(0, 0, "28/08 ", 10, GRAPHICS_NORMAL);
+      led_module.drawString(0, 9, temperature_display.c_str(), 4, GRAPHICS_NORMAL);
+
+      break;
+    case 2:
+      led_module.selectFont(Arial_Black_16);
+      led_module.drawMarquee("Alert Message", 14, (32 * ROW), 0);
+      long start = millis();
+      long timing = start;
+      boolean flag = false;
+      while (!flag) {
+        if ((timing + 20) < millis()) {
+          flag = led_module.stepMarquee(-1, 0);
+          timing = millis();
+        }
+      }
+  }
+
+            }
+            
+            // Schedule next transmission
+            os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
+            break;
+        case EV_LOST_TSYNC:
+            Serial.println(F("EV_LOST_TSYNC"));
+            break;
+        case EV_RESET:
+            Serial.println(F("EV_RESET"));
+            break;
+        case EV_RXCOMPLETE:
+            // data received in ping slot
+            Serial.println(F("EV_RXCOMPLETE"));
+            break;
+        case EV_LINK_DEAD:
+            Serial.println(F("EV_LINK_DEAD"));
+            break;
+        case EV_LINK_ALIVE:
+            Serial.println(F("EV_LINK_ALIVE"));
+            break;
+         default:
+            Serial.println(F("Unknown event"));
+            break;
+    }
+}
+
+void do_send(osjob_t* j){
+  ///////////////////////////////////////////// led p10 ///////////////////////////////////////
+//  led_module.selectFont(FONT);
+
+//     led_module.drawMarquee(myled,25, (32 * ROW), 0);
+//     long start = millis();
+//     long timming = start;
+//     boolean flag = false;
+//     while (!flag)
+//     {
+//       if ((timming + 20) < millis()) 
+//       {
+//         flag = led_module.stepMarquee(-1, 0);
+//         timming = millis();
+//       }
+//     }
+  //   unsigned long currentMillis = millis();
+  // if (currentMillis - previousMillis >= interval) {
+  //   previousMillis = currentMillis;
+  //   displayState = (displayState + 1) % 3; // Cycle entre 0, 1 et 2
+  //   led_module.clearScreen(true);
+  // }
+  
+  // switch(displayState) {
+  //   case 0:
+  //     led_module.selectFont(SystemFont5x7);
+  //     //led_module.drawString(0, 0, "DAN 5m", 10, GRAPHICS_NORMAL);
+  //     //led_module.drawString(0, 9, "HOI 3m", 10, GRAPHICS_NORMAL);
+  //     //break;
+
+      
+
+  //      // Affichage de la première ligne
+  //     led_module.drawMarquee(bus_time_display.c_str(), 8, (32 * ROW), 0);
+  //     {
+  //       long start = millis();
+  //       long timing = start;
+  //       boolean flag1 = false;
+  //       while (!flag1) {
+  //         if ((timing + 20) < millis()) {
+  //           flag1 = led_module.stepMarquee(-1, 0);
+  //           timing = millis();
+  //         }
+  //       }
+  //     }
+      
+  //     // Affichage de la deuxième ligne
+  //     led_module.drawMarquee("5 HOI 3min   ", 8, (32 * ROW), 1);
+  //     {
+  //       long start = millis();
+  //       long timing = start;
+  //       boolean flag2 = false;
+  //       while (!flag2) {
+  //         if ((timing + 20) < millis()) {
+  //           flag2 = led_module.stepMarquee(-1, 9);
+  //           timing = millis();
+  //         }
+  //       }
+  //     }
+  //     break;
+
+
+
+  //   case 1:
+  //     led_module.selectFont(SystemFont5x7);
+  //     led_module.drawString(0, 0, "28/08 ", 10, GRAPHICS_NORMAL);
+  //     led_module.drawString(0, 9, danang_temperature.c_str(), 4, GRAPHICS_NORMAL);
+
+  //     break;
+  //   case 2:
+  //     led_module.selectFont(Arial_Black_16);
+  //     led_module.drawMarquee("Alert Message", 14, (32 * ROW), 0);
+  //     long start = millis();
+  //     long timing = start;
+  //     boolean flag = false;
+  //     while (!flag) {
+  //       if ((timing + 20) < millis()) {
+  //         flag = led_module.stepMarquee(-1, 0);
+  //         timing = millis();
+  //       }
+  //     }
+  // }
+
+////////////////////////////////////////////////////////////////////////////////////////////
+    // Check if there is not a current TX/RX job running
+    if (LMIC.opmode & OP_TXRXPEND) {
+        Serial.println(F("OP_TXRXPEND, not sending"));
+    } else {
+        // Prepare upstream data transmission at the next possible time.
+        LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 1);
+        Serial.println(F("Packet queued"));
+    }
+    // Next TX is scheduled after TX_COMPLETE event.
+}
+
+
+
+
+
+void setup() {
+    Serial.begin(115200);
+    Serial.println(F("Starting"));
+
+
+    ////////////////////////////////////////////////////// led p10 /////////////////////////////////////////////////////////
+    Timer1.initialize(1000);
+  Timer1.attachInterrupt(scan_module);
+  led_module.clearScreen( true );
+
+// led_module.selectFont(FONT);
+//     led_module.drawMarquee("WELCOME TO DNIIT",25, (32 * ROW), 0);
+//     long start = millis();
+//     long timming = start;
+//     boolean flag = false;
+//     while (!flag)
+//     {
+//       if ((timming + 20) < millis()) 
+//       {
+//         flag = led_module.stepMarquee(-1, 0);
+//         timming = millis();
+//       }
+//     }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ 
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    displayState = (displayState + 1) % 3; // Cycle entre 0, 1 et 2
+    led_module.clearScreen(true);
+  }
+  
+  switch(displayState) {
+    case 0:
+      led_module.selectFont(SystemFont5x7);
+      //led_module.drawString(0, 0, "DAN 5m", 10, GRAPHICS_NORMAL);
+      //led_module.drawString(0, 9, "HOI 3m", 10, GRAPHICS_NORMAL);
+      //break;
+
+      
+
+       // Affichage de la première ligne
+      led_module.drawMarquee("1 DAN 5min   ", 8, (32 * ROW), 0);
+      {
+        long start = millis();
+        long timing = start;
+        boolean flag1 = false;
+        while (!flag1) {
+          if ((timing + 20) < millis()) {
+            flag1 = led_module.stepMarquee(-1, 0);
+            timing = millis();
+          }
+        }
+      }
+      
+      // Affichage de la deuxième ligne
+      led_module.drawMarquee("5 HOI 3min   ", 8, (32 * ROW), 1);
+      {
+        long start = millis();
+        long timing = start;
+        boolean flag2 = false;
+        while (!flag2) {
+          if ((timing + 20) < millis()) {
+            flag2 = led_module.stepMarquee(-1, 9);
+            timing = millis();
+          }
+        }
+      }
+      break;
+
+
+
+    case 1:
+      led_module.selectFont(SystemFont5x7);
+      led_module.drawString(0, 0, "27/08 ", 10, GRAPHICS_NORMAL);
+      led_module.drawString(0, 9, "35 deg", 4, GRAPHICS_NORMAL);
+
+      break;
+    case 2:
+      led_module.selectFont(Arial_Black_16);
+      led_module.drawMarquee("Alert Message", 14, (32 * ROW), 0);
+      long start = millis();
+      long timing = start;
+      boolean flag = false;
+      while (!flag) {
+        if ((timing + 20) < millis()) {
+          flag = led_module.stepMarquee(-1, 0);
+          timing = millis();
+        }
+      }
+      
+  }
+
+
+    // LMIC init
+    os_init();
+    // Reset the MAC state. Session and pending data transfers will be discarded.
+    LMIC_reset();
+
+    /* This function is intended to compensate for clock inaccuracy (up to Â±10% in this example), 
+    but that also works to compensate for inaccuracies due to software delays. 
+    The downside of this compensation is a longer receive window, which means a higher battery drain. 
+    So if this helps, you might want to try to lower the percentage (i.e. lower the 10 in the above call), 
+    often 1% works well already. */
+    
+    LMIC_setClockError(MAX_CLOCK_ERROR * 2 / 100);
+
+    // Set static session parameters. Instead of dynamically establishing a session
+    // by joining the network, precomputed session parameters are be provided.
+    #ifdef PROGMEM
+    // On AVR, these values are stored in flash and only copied to RAM
+    // once. Copy them to a temporary buffer here, LMIC_setSession will
+    // copy them into a buffer of its own again.
+    uint8_t appskey[sizeof(APPSKEY)];
+    uint8_t nwkskey[sizeof(NWKSKEY)];
+    memcpy_P(appskey, APPSKEY, sizeof(APPSKEY));
+    memcpy_P(nwkskey, NWKSKEY, sizeof(NWKSKEY));
+    LMIC_setSession (0x1, DEVADDR, nwkskey, appskey);
+    #else
+    // If not running an AVR with PROGMEM, just use the arrays directly
+    LMIC_setSession (0x1, DEVADDR, NWKSKEY, APPSKEY);
+    #endif
+
+    #if defined(CFG_EU)
+    // Set up the 8 channels used    
+    LMIC_setupChannel(0, 868100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+    LMIC_setupChannel(1, 868300000, DR_RANGE_MAP(DR_SF12, DR_SF7B), BAND_CENTI);      // g-band
+    LMIC_setupChannel(2, 868500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+    //LMIC_setupChannel(3, 867100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+    //LMIC_setupChannel(4, 867300000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+    //LMIC_setupChannel(5, 867500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+    //LMIC_setupChannel(6, 867700000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+    //LMIC_setupChannel(7, 867900000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+    //LMIC_setupChannel(8, 868800000, DR_RANGE_MAP(DR_FSK,  DR_FSK),  BAND_MILLI);      // g2-band
+    
+    #elif defined(CFG_VN)
+    // Set up the 8 channels used    
+    LMIC_setupChannel(0, 921400000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+    LMIC_setupChannel(1, 921600000, DR_RANGE_MAP(DR_SF12, DR_SF7B), BAND_CENTI);      // g-band
+    LMIC_setupChannel(2, 921800000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+    LMIC_setupChannel(3, 922000000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+    LMIC_setupChannel(4, 922200000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+    LMIC_setupChannel(5, 922400000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+    LMIC_setupChannel(6, 922600000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+    LMIC_setupChannel(7, 922800000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+    LMIC_setupChannel(8, 922700000, DR_RANGE_MAP(DR_FSK,  DR_FSK),  BAND_MILLI);      // g2-band 
+
+    #elif defined(CFG_US)
+    // Set up the 8 channels used    
+  LMIC_setupChannel(0, 903900000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+  LMIC_setupChannel(1, 904100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+  LMIC_setupChannel(2, 904300000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+  LMIC_setupChannel(3, 904500000, DR_RANGE_MAP(DR_SF12, DR_SF7B),  BAND_CENTI);      // g-band
+  LMIC_setupChannel(4, 904700000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+  LMIC_setupChannel(5, 904900000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+  LMIC_setupChannel(6, 905100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+  LMIC_setupChannel(7, 905300000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+  LMIC_setupChannel(8, 904500000, DR_RANGE_MAP(DR_FSK,  DR_FSK),  BAND_MILLI);      // g2-band
+	
+    #endif
+
+    // Disable link check validation
+    LMIC_setLinkCheckMode(0);
+
+    // TTN uses SF9 for its RX2 window.
+    LMIC.dn2Dr = DR_SF9;
+
+    // Set data rate and transmit power for uplink (note: txpow seems to be ignored by the library)
+    LMIC_setDrTxpow(DR_SF7,14);
+
+    // Start job
+    do_send(&sendjob);
+}
+
+void loop() {
+    os_runloop_once();
+}
+
+
+
+
+
+
+// CODE TO DECODE THE RECEIVED MESSAGE 
+
+
+#include <avr/pgmspace.h>
+
+const char base64_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+int findBase64Char(char c) {
+    for (int i = 0; i < 64; i++) {
+        if (base64_chars[i] == c) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+String decodeBase64(const String& input) {
+    String decoded = "";
+    int in_len = input.length();
+    int i = 0;
+    int in_ = 0;
+    char char_array_4[4], char_array_3[3];
+
+    while (in_len-- && (input[in_] != '=') && isBase64(input[in_])) {
+        char_array_4[i++] = input[in_]; in_++;
+        if (i == 4) {
+            for (i = 0; i < 4; i++) {
+                char_array_4[i] = findBase64Char(char_array_4[i]);
+            }
+
+            char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+            char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+            char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+            for (i = 0; (i < 3); i++) {
+                decoded += char_array_3[i];
+            }
+            i = 0;
+        }
+    }
+
+    if (i) {
+        for (int j = i; j < 4; j++) {
+            char_array_4[j] = 0;
+        }
+
+        for (int j = 0; j < 4; j++) {
+            char_array_4[j] = findBase64Char(char_array_4[j]);
+        }
+
+        char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+        char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+        char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+        for (int j = 0; (j < i - 1); j++) {
+            decoded += char_array_3[j];
+        }
+    }
+
+    return decoded;
+}
+
+bool isBase64(char c) {
+    return (isalnum(c) || (c == '+') || (c == '/'));
+}
+
+
+String hexToString(String hexInput) {
+  String decoded = "";
+  for (int i = 0; i < hexInput.length(); i += 2) {
+    String byteStr = hexInput.substring(i, i + 2);
+    char byte = (char) strtol(byteStr.c_str(), NULL, 16);
+    decoded += byte;
+  }
+  return decoded;
+}
